@@ -1,0 +1,13 @@
+# Ignore everything
+**
+
+# Allow specific files/folders
+!cmd/**
+!internal/**
+!go.mod
+!go.sum
+
+# Exclude unnecessary files
+.git
+.env.dev
+*.exe

@@ -1,0 +1,22 @@
+version: '3.8'
+
+services:
+  backend:
+    build: .
+    container_name: visual-finance-backend
+    restart: always
+    env_file:
+      - .env # Ensure you create a .env file on your server
+    # Cloudflared will connect to this container internally on port 8080.
+    # No need to expose ports to the host machine if we only use Cloudflare Tunnel!
+    # ports:
+    #   - "8080:8080" 
+
+  # Cloudflare Tunnel Container
+  cloudflared:
+    image: cloudflare/cloudflared:latest
+    container_name: cloudflared-tunnel
+    restart: always
+    command: tunnel run
+    environment:
+      - TUNNEL_TOKEN=${CLOUDFLARE_TUNNEL_TOKEN}

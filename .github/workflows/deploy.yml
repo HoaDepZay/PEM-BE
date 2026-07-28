@@ -1,0 +1,35 @@
+name: Deploy Backend to Self-hosted Runner
+
+on:
+  push:
+    branches:
+      - main
+    paths-ignore:
+      - 'README.md'
+
+jobs:
+  deploy:
+    runs-on: self-hosted # Chạy trên máy chủ của bạn
+    
+    steps:
+    - name: Checkout Code
+      uses: actions/checkout@v4
+
+    - name: Create .env file from GitHub Secrets
+      run: |
+        echo "DB_SERVER=${{ secrets.DB_SERVER }}" > .env
+        echo "DB_USER=${{ secrets.DB_USER }}" >> .env
+        echo "DB_PASSWORD=${{ secrets.DB_PASSWORD }}" >> .env
+        echo "DB_NAME=${{ secrets.DB_NAME }}" >> .env
+        echo "CLOUDFLARE_TUNNEL_TOKEN=${{ secrets.CLOUDFLARE_TUNNEL_TOKEN }}" >> .env
+
+    - name: Docker Compose Build and Up
+      run: |
+        # Dừng container cũ nếu đang chạy
+        docker-compose down
+        
+        # Build lại image mới dựa trên source code vừa pull về
+        docker-compose up -d --build
+        
+        # Xóa các image cũ để giải phóng dung lượng (tuỳ chọn)
+        docker image prune -f
