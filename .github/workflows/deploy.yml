@@ -26,10 +26,10 @@ jobs:
     - name: Docker Compose Build and Up
       run: |
         # Dừng container cũ nếu đang chạy
-        docker-compose down
+        docker compose down
         
         # Build lại image mới dựa trên source code vừa pull về
-        docker-compose up -d --build
+        docker compose up -d --build
         
         # Xóa các image cũ để giải phóng dung lượng (tuỳ chọn)
         docker image prune -f
