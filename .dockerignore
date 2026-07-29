@@ -4,6 +4,7 @@
 # Allow specific files/folders
 !cmd/**
 !internal/**
+!docs/**
 !go.mod
 !go.sum
 
