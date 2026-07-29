@@ -3,12 +3,23 @@ package main
 import (
 	"log"
 
+	_ "visualfinance/docs"
 	"visualfinance/internal/config"
 	"visualfinance/internal/pkg/db"
+	"visualfinance/internal/pkg/minio"
 	"visualfinance/internal/routes"
 
 	"github.com/gin-gonic/gin"
+	swaggerFiles "github.com/swaggo/files"
+	ginSwagger "github.com/swaggo/gin-swagger"
 )
+
+// @title           Visual Finance API
+// @version         1.0
+// @description     This is the API for Visual Finance backend.
+// @host            pem.danghoa-erp.site
+// @BasePath        /api/v1
+// @schemes         https
 
 func main() {
 	// 1. Load cấu hình từ file .env.dev
@@ -17,11 +28,17 @@ func main() {
 	// 2. Khởi tạo kết nối CSDL (SQL Server)
 	db.ConnectDB()
 
+	// 2.5 Khởi tạo kết nối MinIO
+	minio.ConnectMinIO()
+
 	// 3. Thiết lập Gin Router
 	router := gin.Default()
 
 	// Khởi tạo các API routes
 	routes.SetupExpenseRoutes(router)
+
+	// Route cho Swagger UI
+	router.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerFiles.Handler))
 
 	// 4. Chạy Server ở port 8080
 	log.Println("Starting server on port 8080...")
