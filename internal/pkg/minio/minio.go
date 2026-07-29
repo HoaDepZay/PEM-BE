@@ -47,7 +47,6 @@ func ConnectMinIO() {
 
 	// Make a new bucket called visual-finance-bucket.
 	ctx := context.Background()
-	var err error
 
 	// Retry loop for MakeBucket (wait for MinIO to start)
 	for i := 0; i < 5; i++ {
