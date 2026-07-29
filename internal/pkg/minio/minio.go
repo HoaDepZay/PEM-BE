@@ -5,6 +5,7 @@ import (
 	"io"
 	"log"
 	"os"
+	"time"
 
 	"github.com/minio/minio-go/v7"
 	"github.com/minio/minio-go/v7/pkg/credentials"
@@ -44,26 +45,39 @@ func ConnectMinIO() {
 
 	log.Printf("Successfully connected to MinIO %s\n", endpoint)
 
-	// Make a new bucket called mymusic.
+	// Make a new bucket called visual-finance-bucket.
 	ctx := context.Background()
-	err = MinioClient.MakeBucket(ctx, BucketName, minio.MakeBucketOptions{})
-	if err != nil {
-		// Check to see if we already own this bucket (which happens if you run this twice)
+	var err error
+
+	// Retry loop for MakeBucket (wait for MinIO to start)
+	for i := 0; i < 5; i++ {
+		err = MinioClient.MakeBucket(ctx, BucketName, minio.MakeBucketOptions{})
+		if err == nil {
+			break
+		}
+		// Check to see if we already own this bucket
 		exists, errBucketExists := MinioClient.BucketExists(ctx, BucketName)
 		if errBucketExists == nil && exists {
 			log.Printf("We already own %s\n", BucketName)
-		} else {
-			log.Fatalln(err)
+			err = nil
+			break
 		}
-	} else {
-		log.Printf("Successfully created %s\n", BucketName)
-		
-		// Set public read policy for the bucket
-		policy := `{"Version":"2012-10-17","Statement":[{"Action":["s3:GetObject"],"Effect":"Allow","Principal":{"AWS":["*"]},"Resource":["arn:aws:s3:::` + BucketName + `/*"]}]}`
-		err = MinioClient.SetBucketPolicy(ctx, BucketName, policy)
-		if err != nil {
-			log.Println("Failed to set bucket policy:", err)
-		}
+		log.Printf("Waiting for MinIO to initialize (retry %d/5)...\n", i+1)
+		time.Sleep(3 * time.Second)
+	}
+
+	if err != nil {
+		log.Println("Failed to create bucket after retries, skipping policy setup:", err)
+		return
+	}
+
+	log.Printf("Successfully created %s\n", BucketName)
+	
+	// Set public read policy for the bucket
+	policy := `{"Version":"2012-10-17","Statement":[{"Action":["s3:GetObject"],"Effect":"Allow","Principal":{"AWS":["*"]},"Resource":["arn:aws:s3:::` + BucketName + `/*"]}]}`
+	err = MinioClient.SetBucketPolicy(ctx, BucketName, policy)
+	if err != nil {
+		log.Println("Failed to set bucket policy:", err)
 	}
 }
 
