@@ -9,6 +9,7 @@ import (
 	"visualfinance/internal/pkg/minio"
 	"visualfinance/internal/routes"
 
+	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
 	swaggerFiles "github.com/swaggo/files"
 	ginSwagger "github.com/swaggo/gin-swagger"
@@ -33,6 +34,12 @@ func main() {
 
 	// 3. Thiết lập Gin Router
 	router := gin.Default()
+
+	// 3.5 Cấu hình CORS
+	configCors := cors.DefaultConfig()
+	configCors.AllowAllOrigins = true
+	configCors.AllowHeaders = []string{"Origin", "Content-Length", "Content-Type", "Authorization"}
+	router.Use(cors.New(configCors))
 
 	// Khởi tạo các API routes
 	routes.SetupExpenseRoutes(router)
