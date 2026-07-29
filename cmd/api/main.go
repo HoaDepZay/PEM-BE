@@ -43,6 +43,8 @@ func main() {
 
 	// Khởi tạo các API routes
 	routes.SetupExpenseRoutes(router)
+	routes.SetupAuthRoutes(router)
+	routes.SetupCategoryRoutes(router)
 
 	// Route cho Swagger UI
 	router.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerFiles.Handler))

@@ -5,6 +5,8 @@ import (
 	"log"
 	"os"
 
+	"visualfinance/internal/models"
+
 	"gorm.io/driver/sqlserver"
 	"gorm.io/gorm"
 )
@@ -30,4 +32,16 @@ func ConnectDB() {
 
 	DB = database
 	log.Println("Database connection successfully opened")
+
+	// Auto-migrate models
+	err = DB.AutoMigrate(
+		&models.User{},
+		&models.Category{},
+		&models.Expense{},
+	)
+	if err != nil {
+		log.Println("AutoMigrate failed: ", err)
+	} else {
+		log.Println("AutoMigrate completed successfully")
+	}
 }
