@@ -1,0 +1,23 @@
+# Backend Rules & Conventions (Golang)
+
+## 1. Naming Conventions
+- **Structs & Interfaces**: Sử dụng `PascalCase` (vd: `Expense`, `UserRepository`).
+- **Exported Functions/Variables**: Sử dụng `PascalCase` (vd: `CreateExpense`, `DB`).
+- **Unexported Functions/Variables**: Sử dụng `camelCase` (vd: `parseText`, `dbConn`).
+- **Files & Packages**: Sử dụng chữ thường, ngắn gọn, có thể có dấu gạch dưới (vd: `expense_controller.go`, `textparser`).
+
+## 2. Architecture (Cấu trúc thư mục)
+Tuân thủ kiến trúc phân tầng để dễ quản lý:
+- `cmd/api/`: Điểm khởi chạy của ứng dụng (`main.go`).
+- `internal/controllers/`: Xử lý HTTP Request/Response, parse dữ liệu đầu vào.
+- `internal/models/`: Định nghĩa Struct của GORM (Database Schema).
+- `internal/routes/`: Định nghĩa các API endpoint (Gin router).
+- `internal/pkg/`: Các module dùng chung, tiện ích (db, minio, response, textparser).
+
+## 3. Database (GORM)
+- Khóa chính (Primary Key) luôn sử dụng kiểu `UUID` (chuẩn `NEWSEQUENTIALID()` trên SQL Server) để tăng bảo mật.
+- Luôn định nghĩa tên bảng rõ ràng bằng hàm `TableName() string`.
+- Hạn chế xóa cứng (Hard Delete), sử dụng `IsDeleted` boolean cho Soft Delete.
+
+## 4. API Response
+- Bắt buộc trả về API qua module `visualfinance/internal/pkg/response` (`response.Success` hoặc `response.Error`) để chuẩn hóa form JSON đầu ra cho Frontend dễ xử lý.
