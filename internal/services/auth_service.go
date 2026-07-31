@@ -84,7 +84,7 @@ func (s *AuthService) VerifyEmail(tokenString string) error {
 func (s *AuthService) LoginUser(emailStr, password string) (*models.User, string, error) {
 	user, err := s.userRepo.FindByEmail(emailStr)
 	if err != nil {
-		return nil, "", errors.New("Invalid email or password")
+		return nil, "", errors.New("DB Error or User Not Found: " + err.Error())
 	}
 
 	// if !user.IsActive {
@@ -92,7 +92,7 @@ func (s *AuthService) LoginUser(emailStr, password string) (*models.User, string
 	// }
 
 	if err := bcrypt.CompareHashAndPassword([]byte(user.PasswordHash), []byte(password)); err != nil {
-		return nil, "", errors.New("Invalid email or password")
+		return nil, "", errors.New("Password mismatch")
 	}
 
 	accessToken, err := jwt.GenerateToken(user.UserID, user.Email, 7*24*time.Hour)
