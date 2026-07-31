@@ -22,10 +22,13 @@ jobs:
         echo "DB_PASSWORD=${{ secrets.DB_PASSWORD }}" >> .env
         echo "DB_NAME=${{ secrets.DB_NAME }}" >> .env
         echo "CLOUDFLARE_TUNNEL_TOKEN=${{ secrets.CLOUDFLARE_TUNNEL_TOKEN }}" >> .env
-        echo "MINIO_ENDPOINT=100.109.65.2:9001" >> .env
+        echo "MINIO_ENDPOINT=100.109.65.2:9000" >> .env
         echo "MINIO_ACCESS_KEY=danghoa" >> .env
         echo "MINIO_SECRET_KEY=31052006Hoa*" >> .env
         echo "MINIO_BUCKET_NAME=pem" >> .env
+        echo "JWT_SECRET=${{ secrets.JWT_SECRET }}" >> .env
+        echo "EMAIL_USER=${{ secrets.EMAIL_USER }}" >> .env
+        echo "EMAIL_PASS=${{ secrets.EMAIL_PASS }}" >> .env
 
     - name: Docker Compose Build and Up
       run: |
