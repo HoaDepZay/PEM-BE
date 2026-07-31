@@ -87,9 +87,9 @@ func (s *AuthService) LoginUser(emailStr, password string) (*models.User, string
 		return nil, "", errors.New("Invalid email or password")
 	}
 
-	if !user.IsActive {
-		return nil, "", errors.New("Please verify your email before logging in")
-	}
+	// if !user.IsActive {
+	// 	return nil, "", errors.New("Please verify your email before logging in")
+	// }
 
 	if err := bcrypt.CompareHashAndPassword([]byte(user.PasswordHash), []byte(password)); err != nil {
 		return nil, "", errors.New("Invalid email or password")
