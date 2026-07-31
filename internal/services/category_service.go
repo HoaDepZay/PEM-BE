@@ -4,6 +4,7 @@ import (
 	"errors"
 	"visualfinance/internal/models"
 	"visualfinance/internal/repositories"
+	"github.com/google/uuid"
 )
 
 type CategoryService struct {
@@ -25,8 +26,11 @@ func (s *CategoryService) CreateCategory(userID, name, icon, color string) (*mod
 		return nil, errors.New("tên danh mục không được để trống")
 	}
 
+	uid, _ := uuid.Parse(userID)
+
 	category := &models.Category{
-		UserID: &userID,
+		CategoryID: uuid.New(),
+		UserID: &uid,
 		Name:   name,
 		Icon:   icon,
 		Color:  color,
@@ -48,7 +52,8 @@ func (s *CategoryService) UpdateCategory(userID, categoryID, name, icon, color s
 	if category == nil {
 		return nil, errors.New("danh mục không tồn tại")
 	}
-	if category.UserID == nil || *category.UserID != userID {
+	uid, _ := uuid.Parse(userID)
+	if category.UserID == nil || *category.UserID != uid {
 		return nil, errors.New("bạn không có quyền sửa danh mục này")
 	}
 
@@ -77,7 +82,8 @@ func (s *CategoryService) DeleteCategory(userID, categoryID string) error {
 	if category == nil {
 		return errors.New("danh mục không tồn tại")
 	}
-	if category.UserID == nil || *category.UserID != userID {
+	uid, _ := uuid.Parse(userID)
+	if category.UserID == nil || *category.UserID != uid {
 		return errors.New("bạn không có quyền xóa danh mục này")
 	}
 

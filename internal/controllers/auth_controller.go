@@ -111,9 +111,82 @@ func GetMe(c *gin.Context) {
 	}
 
 	response.Success(c, http.StatusOK, "User profile retrieved", gin.H{
-		"id":       user.UserID,
-		"username": user.Username,
-		"email":    user.Email,
-		"joinedAt": user.CreatedAt,
+		"id":         user.UserID,
+		"username":   user.Username,
+		"email":      user.Email,
+		"joinedAt":   user.CreatedAt,
+		"avatar_url": user.AvatarURL,
 	})
+}
+
+func ForgotPassword(c *gin.Context) {
+	var req struct {
+		Email string `json:"email" binding:"required,email"`
+	}
+	if err := c.ShouldBindJSON(&req); err != nil {
+		response.Error(c, http.StatusBadRequest, "Invalid input")
+		return
+	}
+
+	// Always return success to prevent email enumeration
+	_ = authService.ForgotPassword(req.Email)
+	response.Success(c, http.StatusOK, "Nếu email tồn tại trong hệ thống, mã OTP đã được gửi.", nil)
+}
+
+func VerifyOTP(c *gin.Context) {
+	var req struct {
+		Email   string `json:"email" binding:"required,email"`
+		OTPCode string `json:"otp_code" binding:"required,len=6"`
+	}
+	if err := c.ShouldBindJSON(&req); err != nil {
+		response.Error(c, http.StatusBadRequest, "Invalid input")
+		return
+	}
+
+	resetToken, err := authService.VerifyOTP(req.Email, req.OTPCode)
+	if err != nil {
+		response.Error(c, http.StatusBadRequest, err.Error())
+		return
+	}
+
+	response.Success(c, http.StatusOK, "OTP hợp lệ", gin.H{"reset_token": resetToken})
+}
+
+func ResetPassword(c *gin.Context) {
+	var req struct {
+		ResetToken  string `json:"reset_token" binding:"required"`
+		NewPassword string `json:"new_password" binding:"required,min=6"`
+	}
+	if err := c.ShouldBindJSON(&req); err != nil {
+		response.Error(c, http.StatusBadRequest, "Invalid input")
+		return
+	}
+
+	if err := authService.ResetPassword(req.ResetToken, req.NewPassword); err != nil {
+		response.Error(c, http.StatusBadRequest, err.Error())
+		return
+	}
+
+	response.Success(c, http.StatusOK, "Đổi mật khẩu thành công. Bạn có thể đăng nhập.", nil)
+}
+
+func ChangePassword(c *gin.Context) {
+	var req struct {
+		OldPassword string `json:"old_password" binding:"required"`
+		NewPassword string `json:"new_password" binding:"required,min=6"`
+	}
+	if err := c.ShouldBindJSON(&req); err != nil {
+		response.Error(c, http.StatusBadRequest, "Invalid input")
+		return
+	}
+
+	userIDStr, _ := c.Get("userID")
+	userID := userIDStr.(uuid.UUID)
+
+	if err := authService.ChangePassword(userID, req.OldPassword, req.NewPassword); err != nil {
+		response.Error(c, http.StatusBadRequest, err.Error())
+		return
+	}
+
+	response.Success(c, http.StatusOK, "Đổi mật khẩu thành công", nil)
 }

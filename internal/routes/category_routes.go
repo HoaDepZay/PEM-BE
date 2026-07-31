@@ -10,9 +10,8 @@ import (
 func SetupCategoryRoutes(router *gin.Engine) {
 	categoryController := controllers.NewCategoryController()
 
-	api := router.Group("/api/v1")
+	categories := router.Group("/api/categories")
 	{
-		categories := api.Group("/categories")
 		categories.Use(middleware.RequireAuth())
 		{
 			categories.GET("/", categoryController.GetCategories)

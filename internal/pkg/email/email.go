@@ -1,7 +1,6 @@
 package email
 
 import (
-	"crypto/tls"
 	"fmt"
 	"os"
 
@@ -35,9 +34,41 @@ func SendVerificationEmail(toEmail string, verifyLink string) error {
 
 	// Gmail SMTP settings
 	d := gomail.NewDialer("smtp.gmail.com", 587, fromEmail, password)
-	d.TLSConfig = &tls.Config{InsecureSkipVerify: false}
 
 	// Send the email
+	if err := d.DialAndSend(m); err != nil {
+		return fmt.Errorf("could not send email: %w", err)
+	}
+
+	return nil
+}
+
+// SendOTPEmail sends an email with the 6-digit OTP code for password reset
+func SendOTPEmail(toEmail string, otpCode string) error {
+	fromEmail := os.Getenv("EMAIL_USER")
+	password := os.Getenv("EMAIL_PASS")
+
+	if fromEmail == "" || password == "" {
+		return fmt.Errorf("email credentials are not set in environment variables")
+	}
+
+	m := gomail.NewMessage()
+	m.SetHeader("From", fromEmail)
+	m.SetHeader("To", toEmail)
+	m.SetHeader("Subject", "Mã xác nhận quên mật khẩu Visual Finance")
+
+	body := fmt.Sprintf(`
+		<h2>Quên mật khẩu Visual Finance</h2>
+		<p>Bạn vừa yêu cầu đặt lại mật khẩu. Mã OTP của bạn là:</p>
+		<h1 style="color:#007BFF; letter-spacing: 5px;">%s</h1>
+		<p>Mã này có hiệu lực trong vòng 5 phút. Vui lòng không chia sẻ mã này cho bất kỳ ai.</p>
+		<p>Nếu bạn không yêu cầu, vui lòng bỏ qua email này.</p>
+	`, otpCode)
+
+	m.SetBody("text/html", body)
+
+	d := gomail.NewDialer("smtp.gmail.com", 587, fromEmail, password)
+
 	if err := d.DialAndSend(m); err != nil {
 		return fmt.Errorf("could not send email: %w", err)
 	}

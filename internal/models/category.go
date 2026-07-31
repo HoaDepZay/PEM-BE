@@ -2,11 +2,12 @@ package models
 
 import (
 	"time"
+	"github.com/google/uuid"
 )
 
 type Category struct {
-	CategoryID string    `gorm:"column:CategoryID;type:uniqueidentifier;primaryKey;default:NEWSEQUENTIALID()" json:"category_id"`
-	UserID     *string   `gorm:"column:UserID;type:uniqueidentifier" json:"user_id"` // NULL means global/system category
+	CategoryID uuid.UUID `gorm:"column:CategoryID;type:uniqueidentifier;primaryKey;default:NEWSEQUENTIALID()" json:"category_id"`
+	UserID     *uuid.UUID `gorm:"column:UserID;type:uniqueidentifier" json:"user_id"` // NULL means global/system category
 	Name       string    `gorm:"column:Name;type:nvarchar(100)" json:"name"`
 	Icon       string    `gorm:"column:Icon;type:varchar(50)" json:"icon"`
 	Color      string    `gorm:"column:Color;type:varchar(20)" json:"color"`

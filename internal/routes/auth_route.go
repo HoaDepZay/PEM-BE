@@ -8,13 +8,22 @@ import (
 )
 
 func SetupAuthRoutes(router *gin.Engine) {
-	authGroup := router.Group("/api/v1/auth")
+	authGroup := router.Group("/api/auth")
 	{
 		authGroup.POST("/register", controllers.Register)
 		authGroup.POST("/login", controllers.Login)
 		authGroup.GET("/verify", controllers.VerifyEmail)
 		
-		// Protected route example
-		authGroup.GET("/me", middleware.RequireAuth(), controllers.GetMe)
+		authGroup.POST("/forgot-password", controllers.ForgotPassword)
+		authGroup.POST("/verify-otp", controllers.VerifyOTP)
+		authGroup.POST("/reset-password", controllers.ResetPassword)
+
+		// Protected routes
+		protected := authGroup.Group("/")
+		protected.Use(middleware.RequireAuth())
+		{
+			protected.GET("/me", controllers.GetMe)
+			protected.POST("/change-password", controllers.ChangePassword)
+		}
 	}
 }

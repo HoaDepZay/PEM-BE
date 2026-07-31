@@ -2,12 +2,13 @@ package models
 
 import (
 	"time"
+	"github.com/google/uuid"
 )
 
 type Expense struct {
-	ExpenseID   string    `gorm:"column:ExpenseID;type:uniqueidentifier;primaryKey;default:NEWSEQUENTIALID()" json:"expense_id"`
-	UserID      string    `gorm:"column:UserID;type:uniqueidentifier;not null" json:"user_id"`
-	CategoryID  *string   `gorm:"column:CategoryID;type:uniqueidentifier" json:"category_id"`
+	ExpenseID   uuid.UUID `gorm:"column:ExpenseID;type:uniqueidentifier;primaryKey;default:NEWSEQUENTIALID()" json:"expense_id"`
+	UserID      uuid.UUID `gorm:"column:UserID;type:uniqueidentifier;not null" json:"user_id"`
+	CategoryID  *uuid.UUID `gorm:"column:CategoryID;type:uniqueidentifier" json:"category_id"`
 	Amount      int64     `gorm:"column:Amount;not null" json:"amount"`
 	Note        string    `gorm:"column:Note;type:nvarchar(255)" json:"note"`
 	ImageURL    string    `gorm:"column:ImageURL;type:varchar(500)" json:"image_url"`

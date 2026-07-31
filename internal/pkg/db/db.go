@@ -36,6 +36,7 @@ func ConnectDB() {
 	// Auto-migrate models
 	err = DB.AutoMigrate(
 		&models.User{},
+		&models.OTPRequest{},
 		&models.Category{},
 		&models.Expense{},
 	)

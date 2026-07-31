@@ -30,9 +30,13 @@ func (s *ExpenseService) CreateExpense(ctx context.Context, userID, categoryID, 
 		return nil, err
 	}
 
+	uid, _ := uuid.Parse(userID)
+	eid := uuid.New()
+
 	// 2. Create expense model
 	expense := &models.Expense{
-		UserID:      userID,
+		ExpenseID:   eid,
+		UserID:      uid,
 		Amount:      amount,
 		Note:        note,
 		ImageURL:    imageURL,
@@ -40,7 +44,10 @@ func (s *ExpenseService) CreateExpense(ctx context.Context, userID, categoryID, 
 	}
 
 	if categoryID != "" {
-		expense.CategoryID = &categoryID
+		cid, err := uuid.Parse(categoryID)
+		if err == nil {
+			expense.CategoryID = &cid
+		}
 	}
 
 	// 3. Save to DB

@@ -8,7 +8,7 @@ import (
 )
 
 func SetupExpenseRoutes(router *gin.Engine) {
-	expenseGroup := router.Group("/api/v1/expenses")
+	expenseGroup := router.Group("/api/expenses")
 	expenseGroup.Use(middleware.RequireAuth()) // Bắt buộc đăng nhập
 	{
 		expenseGroup.POST("/", controllers.CreateExpense)
