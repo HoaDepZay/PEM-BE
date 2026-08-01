@@ -7,5 +7,5 @@ import (
 )
 
 func SetupMediaRoutes(router *gin.Engine) {
-	router.GET("/api/images/:bucket/:filename", controllers.ServeMedia)
+	router.GET("/api/images/:bucket/*filename", controllers.ServeMedia)
 }

@@ -13,6 +13,11 @@ import (
 func ServeMedia(c *gin.Context) {
 	bucketName := c.Param("bucket")
 	objectName := c.Param("filename")
+	
+	// Khi dùng *filename, Gin có thể thêm / ở đầu
+	if len(objectName) > 0 && objectName[0] == '/' {
+		objectName = objectName[1:]
+	}
 
 	ctx := context.Background()
 	object, err := minio.MinioClient.GetObject(ctx, bucketName, objectName, minioV7.GetObjectOptions{})
