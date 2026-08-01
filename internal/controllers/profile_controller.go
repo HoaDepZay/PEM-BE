@@ -32,7 +32,7 @@ func UploadAvatar(c *gin.Context) {
 	defer src.Close()
 
 	// Generate unique filename
-	fileName := fmt.Sprintf("avatars/%s_%s", userID.String(), file.Filename)
+	fileName := fmt.Sprintf("%s-%s", userID.String(), file.Filename)
 
 	// Upload to MinIO
 	imageURL, err := minio.UploadImage(c.Request.Context(), fileName, src, file.Size, file.Header.Get("Content-Type"))
