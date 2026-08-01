@@ -46,6 +46,7 @@ func main() {
 	routes.SetupAuthRoutes(router)
 	routes.SetupCategoryRoutes(router)
 	routes.SetupProfileRoutes(router)
+	routes.SetupMediaRoutes(router)
 
 	// Route cho Swagger UI
 	router.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerFiles.Handler))
