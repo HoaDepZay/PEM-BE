@@ -1,14 +1,13 @@
-package models
+﻿package models
 
 import (
 	"time"
-	"github.com/google/uuid"
 )
 
 type Expense struct {
-	ExpenseID   uuid.UUID `gorm:"column:ExpenseID;type:uniqueidentifier;primaryKey;default:NEWSEQUENTIALID()" json:"expense_id"`
-	UserID      uuid.UUID `gorm:"column:UserID;type:uniqueidentifier;not null" json:"user_id"`
-	CategoryID  *uuid.UUID `gorm:"column:CategoryID;type:uniqueidentifier" json:"category_id"`
+	ExpenseID   MSSQLUUID `gorm:"column:ExpenseID;type:uniqueidentifier;primaryKey;default:NEWSEQUENTIALID()" json:"expense_id"`
+	UserID      MSSQLUUID `gorm:"column:UserID;type:uniqueidentifier;not null" json:"user_id"`
+	CategoryID  *MSSQLUUID `gorm:"column:CategoryID;type:uniqueidentifier" json:"category_id"`
 	Amount      int64     `gorm:"column:Amount;not null" json:"amount"`
 	Note        string    `gorm:"column:Note;type:nvarchar(255)" json:"note"`
 	ImageURL    string    `gorm:"column:ImageURL;type:varchar(500)" json:"image_url"`
@@ -22,3 +21,5 @@ type Expense struct {
 func (Expense) TableName() string {
 	return "Expenses"
 }
+
+

@@ -1,4 +1,4 @@
-package repositories
+﻿package repositories
 
 import (
 	"visualfinance/internal/models"
@@ -38,8 +38,9 @@ func (r *UserRepository) Create(user *models.User) error {
 
 func (r *UserRepository) Update(user *models.User) error {
 	return db.DB.Model(&models.User{}).
-		Where("UserID = ?", utils.ToMSSQLUUIDString(user.UserID)).
+		Where("UserID = ?", utils.ToMSSQLUUIDString(uuid.UUID(user.UserID))).
 		Select("*").
 		Omit("UserID", "CreatedAt").
 		Updates(user).Error
 }
+

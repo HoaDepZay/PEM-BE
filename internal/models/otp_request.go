@@ -1,14 +1,12 @@
-package models
+﻿package models
 
 import (
 	"time"
-
-	"github.com/google/uuid"
 	"gorm.io/gorm"
 )
 
 type OTPRequest struct {
-	ID        uuid.UUID `gorm:"type:uniqueidentifier;primaryKey;default:NEWSEQUENTIALID();column:ID"`
+	ID        MSSQLUUID `gorm:"type:uniqueidentifier;primaryKey;default:NEWSEQUENTIALID();column:ID"`
 	Email     string    `gorm:"type:nvarchar(100);not null;column:Email"`
 	OTPCode   string    `gorm:"type:varchar(6);not null;column:OTPCode"`
 	ExpiresAt time.Time `gorm:"type:datetime2;not null;column:ExpiresAt"`
@@ -22,8 +20,11 @@ func (OTPRequest) TableName() string {
 
 // Hooks
 func (o *OTPRequest) BeforeCreate(tx *gorm.DB) (err error) {
-	if o.ID == uuid.Nil {
-		o.ID = uuid.New()
+	if o.ID == NilMSSQLUUID {
+		o.ID = NewMSSQLUUID()
 	}
 	return
 }
+
+
+

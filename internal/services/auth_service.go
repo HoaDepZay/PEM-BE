@@ -1,4 +1,4 @@
-package services
+﻿package services
 
 import (
 	"errors"
@@ -17,14 +17,16 @@ import (
 )
 
 type AuthService struct {
-	userRepo *repositories.UserRepository
-	otpRepo  *repositories.OTPRepository
+	userRepo    *repositories.UserRepository
+	otpRepo     *repositories.OTPRepository
+	sessionRepo *repositories.SessionRepository
 }
 
 func NewAuthService() *AuthService {
 	return &AuthService{
-		userRepo: repositories.NewUserRepository(),
-		otpRepo:  repositories.NewOTPRepository(),
+		userRepo:    repositories.NewUserRepository(),
+		otpRepo:     repositories.NewOTPRepository(),
+		sessionRepo: repositories.NewSessionRepository(),
 	}
 }
 
@@ -50,7 +52,7 @@ func (s *AuthService) RegisterUser(username, emailStr, password string) (*models
 		return nil, "", errors.New("Failed to create user")
 	}
 
-	verifyToken, err := jwt.GenerateToken(newUser.UserID, newUser.Email, 24*time.Hour)
+	verifyToken, err := jwt.GenerateToken(uuid.UUID(newUser.UserID), newUser.Email, 24*time.Hour)
 	if err != nil {
 		return nil, "", errors.New("Failed to generate verification token")
 	}
@@ -81,27 +83,88 @@ func (s *AuthService) VerifyEmail(tokenString string) error {
 	return nil
 }
 
-func (s *AuthService) LoginUser(emailStr, password string) (*models.User, string, error) {
+func (s *AuthService) LoginUser(emailStr, password, userAgent, clientIP string) (*models.User, string, string, error) {
 	user, err := s.userRepo.FindByEmail(emailStr)
 	if err != nil {
-		return nil, "", errors.New("DB Error or User Not Found: " + err.Error())
+		return nil, "", "", errors.New("DB Error or User Not Found: " + err.Error())
 	}
-
-	// if !user.IsActive {
-	// 	return nil, "", errors.New("Please verify your email before logging in")
-	// }
 
 	if err := bcrypt.CompareHashAndPassword([]byte(user.PasswordHash), []byte(password)); err != nil {
-		return nil, "", errors.New("Password mismatch")
+		return nil, "", "", errors.New("Password mismatch")
 	}
 
-	accessToken, err := jwt.GenerateToken(user.UserID, user.Email, 7*24*time.Hour)
+	accessToken, err := jwt.GenerateToken(uuid.UUID(user.UserID), user.Email, 15*time.Minute)
 	if err != nil {
-		return nil, "", errors.New("Failed to generate token")
+		return nil, "", "", errors.New("Failed to generate access token")
 	}
 
-	return user, accessToken, nil
+	refreshToken, err := jwt.GenerateRefreshToken()
+	if err != nil {
+		return nil, "", "", errors.New("Failed to generate refresh token")
+	}
+
+	session := &models.Session{
+		ID: models.NewMSSQLUUID(),
+		UserID:       user.UserID,
+		RefreshToken: refreshToken,
+		UserAgent:    userAgent,
+		ClientIP:     clientIP,
+		ExpiresAt:    time.Now().Add(7 * 24 * time.Hour), // 7 days
+	}
+	
+	if err := s.sessionRepo.Create(session); err != nil {
+		return nil, "", "", errors.New("Failed to create session")
+	}
+
+	return user, accessToken, refreshToken, nil
 }
+
+func (s *AuthService) RefreshAccessToken(refreshToken string) (string, string, error) {
+	session, err := s.sessionRepo.GetByRefreshToken(refreshToken)
+	if err != nil || session == nil {
+		return "", "", errors.New("Invalid refresh token")
+	}
+
+	if session.IsBlocked || time.Now().After(session.ExpiresAt) {
+		_ = s.sessionRepo.DeleteByToken(refreshToken)
+		return "", "", errors.New("Refresh token expired or blocked")
+	}
+
+	user, err := s.userRepo.FindByID(uuid.UUID(session.UserID))
+	if err != nil {
+		return "", "", errors.New("User not found")
+	}
+
+	newAccessToken, err := jwt.GenerateToken(uuid.UUID(user.UserID), user.Email, 15*time.Minute)
+	if err != nil {
+		return "", "", errors.New("Failed to generate new access token")
+	}
+
+	newRefreshToken, err := jwt.GenerateRefreshToken()
+	if err != nil {
+		return "", "", errors.New("Failed to generate new refresh token")
+	}
+
+	// XÃ³a session cÅ©, táº¡o session má»›i (Xoay vÃ²ng token)
+	_ = s.sessionRepo.DeleteByToken(refreshToken)
+	
+	newSession := &models.Session{
+		ID: models.NewMSSQLUUID(),
+		UserID:       user.UserID,
+		RefreshToken: newRefreshToken,
+		UserAgent:    session.UserAgent,
+		ClientIP:     session.ClientIP,
+		ExpiresAt:    time.Now().Add(7 * 24 * time.Hour),
+	}
+	_ = s.sessionRepo.Create(newSession)
+
+	return newAccessToken, newRefreshToken, nil
+}
+
+func (s *AuthService) LogoutUser(refreshToken string) error {
+	return s.sessionRepo.DeleteByToken(refreshToken)
+}
+
 
 func (s *AuthService) GetUserByID(userID uuid.UUID) (*models.User, error) {
 	user, err := s.userRepo.FindByID(userID)
@@ -167,7 +230,7 @@ func (s *AuthService) VerifyOTP(emailStr, otpCode string) (string, error) {
 		return "", errors.New("User not found")
 	}
 
-	resetToken, err := jwt.GenerateToken(user.UserID, user.Email, 15*time.Minute)
+	resetToken, err := jwt.GenerateToken(uuid.UUID(user.UserID), user.Email, 15*time.Minute)
 	if err != nil {
 		return "", errors.New("Failed to generate reset token")
 	}
@@ -221,3 +284,5 @@ func (s *AuthService) ChangePassword(userID uuid.UUID, oldPassword, newPassword 
 
 	return nil
 }
+
+

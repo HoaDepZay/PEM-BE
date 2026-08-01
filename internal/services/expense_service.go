@@ -1,9 +1,11 @@
-package services
+﻿package services
 
 import (
 	"context"
+	"errors"
 	"io"
 	"time"
+	"fmt"
 
 	"visualfinance/internal/models"
 	"visualfinance/internal/pkg/minio"
@@ -35,8 +37,8 @@ func (s *ExpenseService) CreateExpense(ctx context.Context, userID, categoryID, 
 
 	// 2. Create expense model
 	expense := &models.Expense{
-		ExpenseID:   eid,
-		UserID:      uid,
+		ExpenseID: models.MSSQLUUID(eid),
+		UserID: models.MSSQLUUID(uid),
 		Amount:      amount,
 		Note:        note,
 		ImageURL:    imageURL,
@@ -46,7 +48,7 @@ func (s *ExpenseService) CreateExpense(ctx context.Context, userID, categoryID, 
 	if categoryID != "" {
 		cid, err := uuid.Parse(categoryID)
 		if err == nil {
-			expense.CategoryID = &cid
+			expense.CategoryID = (*models.MSSQLUUID)(&cid)
 		}
 	}
 
@@ -61,3 +63,60 @@ func (s *ExpenseService) CreateExpense(ctx context.Context, userID, categoryID, 
 func (s *ExpenseService) GetExpenses(userID string) ([]models.Expense, error) {
 	return s.expenseRepo.GetExpensesByUserID(userID, 50)
 }
+
+func (s *ExpenseService) UpdateExpense(userID, expenseID, categoryID, note, amountStr string) (*models.Expense, error) {
+	expense, err := s.expenseRepo.GetByID(expenseID)
+	if err != nil {
+		return nil, err
+	}
+	if expense == nil {
+		return nil, errors.New("giao dá»‹ch khÃ´ng tá»“n táº¡i")
+	}
+	uid, _ := uuid.Parse(userID)
+	if uuid.UUID(expense.UserID) != uid {
+		return nil, errors.New("báº¡n khÃ´ng cÃ³ quyá»n sá»­a giao dá»‹ch nÃ y")
+	}
+
+	if note != "" {
+		expense.Note = note
+	}
+	if amountStr != "" {
+		var amt int64
+		fmt.Sscanf(amountStr, "%d", &amt)
+		if amt > 0 {
+			expense.Amount = amt
+		}
+	}
+	if categoryID != "" {
+		cid, err := uuid.Parse(categoryID)
+		if err == nil {
+			expense.CategoryID = (*models.MSSQLUUID)(&cid)
+		}
+	}
+
+	expense.UpdatedAt = time.Now()
+	if err := s.expenseRepo.Update(expense); err != nil {
+		return nil, err
+	}
+
+	return expense, nil
+}
+
+func (s *ExpenseService) DeleteExpense(userID, expenseID string) error {
+	expense, err := s.expenseRepo.GetByID(expenseID)
+	if err != nil {
+		return err
+	}
+	if expense == nil {
+		return errors.New("giao dá»‹ch khÃ´ng tá»“n táº¡i")
+	}
+	uid, _ := uuid.Parse(userID)
+	if uuid.UUID(expense.UserID) != uid {
+		return errors.New("báº¡n khÃ´ng cÃ³ quyá»n xÃ³a giao dá»‹ch nÃ y")
+	}
+
+	return s.expenseRepo.Delete(expenseID)
+}
+
+
+

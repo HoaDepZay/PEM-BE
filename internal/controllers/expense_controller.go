@@ -101,3 +101,65 @@ func GetExpenses(c *gin.Context) {
 
 	response.Success(c, http.StatusOK, "Expenses retrieved successfully", expenses)
 }
+
+// UpdateExpense godoc
+// @Summary      Update an expense
+// @Tags         expenses
+// @Accept       multipart/form-data
+// @Produce      json
+// @Param        id path string true "Expense ID"
+// @Param        note formData string false "Note"
+// @Param        category_id formData string false "Category ID"
+// @Param        amount formData string false "Amount"
+// @Success      200      {object}  response.Response
+// @Failure      400      {object}  response.Response
+// @Failure      500      {object}  response.Response
+// @Router       /{id} [put]
+func UpdateExpense(c *gin.Context) {
+	userIDStrObj, exists := c.Get("userID")
+	if !exists {
+		response.Error(c, http.StatusUnauthorized, "Unauthorized")
+		return
+	}
+	userIDStr := userIDStrObj.(uuid.UUID).String()
+	expenseID := c.Param("id")
+
+	note := c.PostForm("note")
+	categoryID := c.PostForm("category_id")
+	amountStr := c.PostForm("amount")
+
+	expense, err := expenseService.UpdateExpense(userIDStr, expenseID, categoryID, note, amountStr)
+	if err != nil {
+		response.Error(c, http.StatusBadRequest, err.Error())
+		return
+	}
+
+	response.Success(c, http.StatusOK, "Expense updated successfully", expense)
+}
+
+// DeleteExpense godoc
+// @Summary      Delete an expense
+// @Tags         expenses
+// @Produce      json
+// @Param        id path string true "Expense ID"
+// @Success      200      {object}  response.Response
+// @Failure      400      {object}  response.Response
+// @Router       /{id} [delete]
+func DeleteExpense(c *gin.Context) {
+	userIDStrObj, exists := c.Get("userID")
+	if !exists {
+		response.Error(c, http.StatusUnauthorized, "Unauthorized")
+		return
+	}
+	userIDStr := userIDStrObj.(uuid.UUID).String()
+	expenseID := c.Param("id")
+
+	err := expenseService.DeleteExpense(userIDStr, expenseID)
+	if err != nil {
+		response.Error(c, http.StatusBadRequest, err.Error())
+		return
+	}
+
+	response.Success(c, http.StatusOK, "Expense deleted successfully", nil)
+}
+

@@ -61,8 +61,9 @@ func (c *CategoryController) CreateCategory(ctx *gin.Context) {
 
 	var req struct {
 		Name  string `json:"name" binding:"required"`
-		Icon  string `json:"icon"`
-		Color string `json:"color"`
+		Icon        string `json:"icon"`
+		Color       string `json:"color"`
+		DailyBudget *int64 `json:"daily_budget"`
 	}
 
 	if err := ctx.ShouldBindJSON(&req); err != nil {
@@ -70,7 +71,7 @@ func (c *CategoryController) CreateCategory(ctx *gin.Context) {
 		return
 	}
 
-	category, err := c.categoryService.CreateCategory(userIDStr, req.Name, req.Icon, req.Color)
+	category, err := c.categoryService.CreateCategory(userIDStr, req.Name, req.Icon, req.Color, req.DailyBudget)
 	if err != nil {
 		ctx.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
@@ -101,8 +102,9 @@ func (c *CategoryController) UpdateCategory(ctx *gin.Context) {
 
 	var req struct {
 		Name  string `json:"name"`
-		Icon  string `json:"icon"`
-		Color string `json:"color"`
+		Icon        string `json:"icon"`
+		Color       string `json:"color"`
+		DailyBudget *int64 `json:"daily_budget"`
 	}
 
 	if err := ctx.ShouldBindJSON(&req); err != nil {
@@ -110,7 +112,7 @@ func (c *CategoryController) UpdateCategory(ctx *gin.Context) {
 		return
 	}
 
-	category, err := c.categoryService.UpdateCategory(userIDStr, categoryID, req.Name, req.Icon, req.Color)
+	category, err := c.categoryService.UpdateCategory(userIDStr, categoryID, req.Name, req.Icon, req.Color, req.DailyBudget)
 	if err != nil {
 		ctx.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return

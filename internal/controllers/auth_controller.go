@@ -79,20 +79,64 @@ func Login(c *gin.Context) {
 		return
 	}
 
-	user, accessToken, err := authService.LoginUser(req.Email, req.Password)
+	userAgent := c.Request.UserAgent()
+	clientIP := c.ClientIP()
+
+	user, accessToken, refreshToken, err := authService.LoginUser(req.Email, req.Password, userAgent, clientIP)
 	if err != nil {
 		response.Error(c, http.StatusUnauthorized, err.Error())
 		return
 	}
 
 	response.Success(c, http.StatusOK, "Login successful", gin.H{
-		"token": accessToken,
+		"token":         accessToken,
+		"refresh_token": refreshToken,
 		"user": gin.H{
 			"id":       user.UserID,
 			"username": user.Username,
 			"email":    user.Email,
 		},
 	})
+}
+
+// Refresh issues a new access and refresh token
+func Refresh(c *gin.Context) {
+	var req struct {
+		RefreshToken string `json:"refresh_token" binding:"required"`
+	}
+	if err := c.ShouldBindJSON(&req); err != nil {
+		response.Error(c, http.StatusBadRequest, "Invalid input")
+		return
+	}
+
+	newAccessToken, newRefreshToken, err := authService.RefreshAccessToken(req.RefreshToken)
+	if err != nil {
+		response.Error(c, http.StatusUnauthorized, err.Error())
+		return
+	}
+
+	response.Success(c, http.StatusOK, "Token refreshed successfully", gin.H{
+		"token":         newAccessToken,
+		"refresh_token": newRefreshToken,
+	})
+}
+
+// Logout deletes the refresh token session
+func Logout(c *gin.Context) {
+	var req struct {
+		RefreshToken string `json:"refresh_token" binding:"required"`
+	}
+	if err := c.ShouldBindJSON(&req); err != nil {
+		response.Error(c, http.StatusBadRequest, "Invalid input")
+		return
+	}
+
+	if err := authService.LogoutUser(req.RefreshToken); err != nil {
+		response.Error(c, http.StatusInternalServerError, err.Error())
+		return
+	}
+
+	response.Success(c, http.StatusOK, "Logged out successfully", nil)
 }
 
 // GetMe returns the current authenticated user's profile

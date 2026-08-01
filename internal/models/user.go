@@ -1,14 +1,12 @@
-package models
+﻿package models
 
 import (
 	"time"
-
-	"github.com/google/uuid"
 	"gorm.io/gorm"
 )
 
 type User struct {
-	UserID       uuid.UUID `gorm:"type:uniqueidentifier;primaryKey;default:NEWSEQUENTIALID();column:UserID"`
+	UserID       MSSQLUUID `gorm:"type:uniqueidentifier;primaryKey;default:NEWSEQUENTIALID();column:UserID"`
 	Username     string    `gorm:"type:nvarchar(50);not null;unique;column:Username"`
 	Email        string    `gorm:"type:nvarchar(100);not null;unique;column:Email"`
 	PasswordHash string    `gorm:"type:nvarchar(255);not null;column:PasswordHash"`
@@ -24,8 +22,11 @@ func (User) TableName() string {
 
 // Hooks
 func (u *User) BeforeCreate(tx *gorm.DB) (err error) {
-	if u.UserID == uuid.Nil {
-		u.UserID = uuid.New()
+	if u.UserID == NilMSSQLUUID {
+		u.UserID = NewMSSQLUUID()
 	}
 	return
 }
+
+
+

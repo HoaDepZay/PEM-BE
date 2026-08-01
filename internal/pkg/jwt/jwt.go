@@ -6,6 +6,8 @@ import (
 	"time"
 
 	"github.com/golang-jwt/jwt/v5"
+	"crypto/rand"
+	"encoding/base64"
 	"github.com/google/uuid"
 )
 
@@ -60,3 +62,14 @@ func ValidateToken(tokenString string) (*CustomClaims, error) {
 
 	return nil, errors.New("invalid token")
 }
+
+// GenerateRefreshToken generates a secure random string for use as a refresh token
+func GenerateRefreshToken() (string, error) {
+	b := make([]byte, 32)
+	_, err := rand.Read(b)
+	if err != nil {
+		return "", err
+	}
+	return base64.URLEncoding.EncodeToString(b), nil
+}
+
