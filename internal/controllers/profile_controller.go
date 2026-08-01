@@ -14,6 +14,24 @@ import (
 
 var profileService = services.NewProfileService()
 
+func GetProfile(c *gin.Context) {
+	userIDStr, _ := c.Get("userID")
+	userID := userIDStr.(uuid.UUID)
+
+	user, err := profileService.GetUserByID(userID)
+	if err != nil {
+		response.Error(c, http.StatusNotFound, "User not found")
+		return
+	}
+
+	response.Success(c, http.StatusOK, "Profile retrieved successfully", gin.H{
+		"id":         user.UserID,
+		"username":   user.Username,
+		"email":      user.Email,
+		"avatar_url": user.AvatarURL,
+	})
+}
+
 func UploadAvatar(c *gin.Context) {
 	file, err := c.FormFile("avatar")
 	if err != nil {
