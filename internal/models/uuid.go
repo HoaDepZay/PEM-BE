@@ -1,4 +1,4 @@
-﻿package models
+package models
 
 import (
 	"database/sql/driver"
@@ -58,12 +58,12 @@ func NewMSSQLUUID() MSSQLUUID {
 var NilMSSQLUUID = MSSQLUUID(uuid.Nil)
 
 func (u MSSQLUUID) MarshalJSON() ([]byte, error) {
-	return []byte(" + uuid.UUID(u).String() + "), nil
+	return []byte("\"" + uuid.UUID(u).String() + "\""), nil
 }
 
 func (u *MSSQLUUID) UnmarshalJSON(data []byte) error {
 	str := string(data)
-	if str == "null" || str == "" {
+	if str == "null" || str == "\"\"" {
 		return nil
 	}
 	if len(str) < 2 || str[0] != '"' || str[len(str)-1] != '"' {
