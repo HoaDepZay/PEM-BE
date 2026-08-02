@@ -1,9 +1,8 @@
-﻿package repositories
+package repositories
 
 import (
 	"visualfinance/internal/models"
 	"visualfinance/internal/pkg/db"
-	"visualfinance/internal/pkg/utils"
 
 	"github.com/google/uuid"
 )
@@ -28,7 +27,7 @@ func (r *UserRepository) FindByEmail(email string) (*models.User, error) {
 
 func (r *UserRepository) FindByID(id uuid.UUID) (*models.User, error) {
 	var user models.User
-	err := db.DB.Where("UserID = ?", utils.ToMSSQLUUIDString(id)).First(&user).Error
+	err := db.DB.Where("UserID = ?", id.String()).First(&user).Error
 	return &user, err
 }
 
@@ -38,7 +37,7 @@ func (r *UserRepository) Create(user *models.User) error {
 
 func (r *UserRepository) Update(user *models.User) error {
 	return db.DB.Model(&models.User{}).
-		Where("UserID = ?", utils.ToMSSQLUUIDString(uuid.UUID(user.UserID))).
+		Where("UserID = ?", uuid.UUID(user.UserID).String()).
 		Select("*").
 		Omit("UserID", "CreatedAt").
 		Updates(user).Error
