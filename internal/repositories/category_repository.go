@@ -13,23 +13,37 @@ func NewCategoryRepository() *CategoryRepository {
 	return &CategoryRepository{}
 }
 
-// GetCategoriesByUserID lấy danh sách các danh mục của 1 user và các danh mục hệ thống (UserID = NULL)
-func (r *CategoryRepository) GetCategoriesByUserID(userID string) ([]models.Category, error) {
-	var categories []models.Category
-	// Lấy categories của user HOẶC hệ thống (UserID IS NULL)
-	err := db.DB.Where("UserID = ?", userID).Or("UserID IS NULL").Find(&categories).Error
-	return categories, err
+// Lấy danh sách nhóm danh mục (kèm danh mục con)
+func (r *CategoryRepository) GetCategoryGroupsByUserID(userID string) ([]models.CategoryGroup, error) {
+	var groups []models.CategoryGroup
+	err := db.DB.Preload("Categories").Where("UserID = ? OR UserID IS NULL", userID).Find(&groups).Error
+	return groups, err
 }
 
-func (r *CategoryRepository) Create(category *models.Category) error {
-	return db.DB.Create(category).Error
+// Lấy Group theo ID
+func (r *CategoryRepository) GetGroupByID(id string) (*models.CategoryGroup, error) {
+	var group models.CategoryGroup
+	err := db.DB.First(&group, "GroupID = ?", id).Error
+	if err == gorm.ErrRecordNotFound {
+		return nil, nil
+	}
+	return &group, err
 }
 
-func (r *CategoryRepository) Update(category *models.Category) error {
-	return db.DB.Save(category).Error
+func (r *CategoryRepository) CreateGroup(group *models.CategoryGroup) error {
+	return db.DB.Create(group).Error
 }
 
-func (r *CategoryRepository) GetByID(id string) (*models.Category, error) {
+func (r *CategoryRepository) UpdateGroup(group *models.CategoryGroup) error {
+	return db.DB.Save(group).Error
+}
+
+func (r *CategoryRepository) DeleteGroup(id string) error {
+	return db.DB.Delete(&models.CategoryGroup{}, "GroupID = ?", id).Error
+}
+
+// Các hàm cho Category con
+func (r *CategoryRepository) GetCategoryByID(id string) (*models.Category, error) {
 	var category models.Category
 	err := db.DB.First(&category, "CategoryID = ?", id).Error
 	if err == gorm.ErrRecordNotFound {
@@ -38,6 +52,24 @@ func (r *CategoryRepository) GetByID(id string) (*models.Category, error) {
 	return &category, err
 }
 
-func (r *CategoryRepository) Delete(id string) error {
+func (r *CategoryRepository) CreateCategory(category *models.Category) error {
+	return db.DB.Create(category).Error
+}
+
+func (r *CategoryRepository) UpdateCategory(category *models.Category) error {
+	return db.DB.Save(category).Error
+}
+
+func (r *CategoryRepository) DeleteCategory(id string) error {
 	return db.DB.Delete(&models.Category{}, "CategoryID = ?", id).Error
+}
+
+// Cập nhật lại tổng ngân sách của một Group bằng cách tính tổng BudgetAmount của các Category con
+func (r *CategoryRepository) UpdateGroupBudget(groupID string) error {
+	return db.DB.Exec(`
+		UPDATE CategoryGroups 
+		SET TotalBudget = ISNULL((SELECT SUM(BudgetAmount) FROM Categories WHERE GroupID = ?), 0)
+		WHERE GroupID = ?`, 
+		groupID, groupID,
+	).Error
 }

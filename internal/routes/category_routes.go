@@ -15,6 +15,13 @@ func SetupCategoryRoutes(router *gin.Engine) {
 		categories.Use(middleware.RequireAuth())
 		{
 			categories.GET("/", categoryController.GetCategories)
+			
+			// Groups
+			categories.POST("/groups", categoryController.CreateGroup)
+			categories.PUT("/groups/:id", categoryController.UpdateGroup)
+			categories.DELETE("/groups/:id", categoryController.DeleteGroup)
+
+			// Sub-Categories
 			categories.POST("/", categoryController.CreateCategory)
 			categories.PUT("/:id", categoryController.UpdateCategory)
 			categories.DELETE("/:id", categoryController.DeleteCategory)

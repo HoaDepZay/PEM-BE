@@ -1,4 +1,4 @@
-﻿package services
+package services
 
 import (
 	"context"
@@ -48,7 +48,7 @@ func (s *ExpenseService) CreateExpense(ctx context.Context, userID, categoryID, 
 	if categoryID != "" {
 		cid, err := uuid.Parse(categoryID)
 		if err == nil {
-			expense.CategoryID = (*models.MSSQLUUID)(&cid)
+			expense.CategoryID = models.MSSQLUUID(cid)
 		}
 	}
 
@@ -90,7 +90,7 @@ func (s *ExpenseService) UpdateExpense(userID, expenseID, categoryID, note, amou
 	if categoryID != "" {
 		cid, err := uuid.Parse(categoryID)
 		if err == nil {
-			expense.CategoryID = (*models.MSSQLUUID)(&cid)
+			expense.CategoryID = models.MSSQLUUID(cid)
 		}
 	}
 

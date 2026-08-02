@@ -1,22 +1,22 @@
-﻿package models
+package models
 
 import (
 	"time"
 )
 
 type Category struct {
-	CategoryID MSSQLUUID `gorm:"column:CategoryID;type:uniqueidentifier;primaryKey;default:NEWSEQUENTIALID()" json:"category_id"`
-	UserID     *MSSQLUUID `gorm:"column:UserID;type:uniqueidentifier" json:"user_id"` // NULL means global/system category
-	Name       string    `gorm:"column:Name;type:nvarchar(100)" json:"name"`
-	Icon       string    `gorm:"column:Icon;type:varchar(50)" json:"icon"`
-	Color       string    `gorm:"column:Color;type:varchar(20)" json:"color"`
-	DailyBudget *int64    `gorm:"column:DailyBudget;type:bigint" json:"daily_budget"`
-	CreatedAt   time.Time `gorm:"column:CreatedAt;default:GETDATE()" json:"created_at"`
+	CategoryID   MSSQLUUID `gorm:"column:CategoryID;type:uniqueidentifier;primaryKey;default:NEWSEQUENTIALID()" json:"category_id"`
+	GroupID      MSSQLUUID `gorm:"column:GroupID;type:uniqueidentifier;not null" json:"group_id"`
+	Name         string    `gorm:"column:Name;type:nvarchar(100)" json:"name"`
+	BudgetType   string    `gorm:"column:BudgetType;type:varchar(20)" json:"budget_type"`
+	BudgetAmount int64     `gorm:"column:BudgetAmount;type:bigint" json:"budget_amount"`
+	CreatedAt    time.Time `gorm:"column:CreatedAt;default:GETDATE()" json:"created_at"`
+
+	// Virtual fields for dynamic calculation (Not in DB)
+	Status           string `gorm:"-" json:"status"`
+	OverBudgetAmount int64  `gorm:"-" json:"over_budget_amount"`
 }
 
-// TableName overrides the table name used by Category to `Categories`
 func (Category) TableName() string {
 	return "Categories"
 }
-
-
